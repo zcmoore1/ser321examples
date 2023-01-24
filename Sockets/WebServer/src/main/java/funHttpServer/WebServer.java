@@ -8,7 +8,6 @@ You can also do some other simple GET requests:
 4) /multiply?num1=3&num2=4 multiplies the two inputs and responses with the result
 5) /github?query=users/amehlhase316/repos (or other GitHub repo owners) will lead to receiving
    JSON which will for now only be printed in the console. See the todo below
-
 The reading of the request is done "manually", meaning no library that helps making things a 
 little easier is used. This is done so you see exactly how to pars the request and 
 write a response back
@@ -210,35 +209,34 @@ class WebServer {
 		
 	  }
 	  else if(request.contains("multiply?")){
-                  query_pairs = splitQuery(request.replace("multiply?", "")); 
+          query_pairs = splitQuery(request.replace("multiply?", "")); 
 		  
 		  if (query_pairs.get("num1") == null || query_pairs.get("num2") == null)		 {
 		  
-		  if (query_pairs.get("num1") == null) {
+			  if (query_pairs.get("num1") == null) {
 			  
-			  if (query_pairs.get("num2") == null)
-				  emptyNum = "num1 and num2";
+				  if (query_pairs.get("num2") == null)
+					  emptyNum = "num1 and num2";
 			  else
 				  emptyNum = "num1";
-		 	 }
+	      }
 		  builder.append("HTTP/1.1 405 Missing Parameters\n");
-                  builder.append("Content-Type: text/html; charset=utf-8\n");
-                  builder.append("\n");
-                  builder.append("num1 and num2 are required for multiply\n");
-                  builder.append("\nPlease check your " + emptyNum + " parameter and try again");
-
+          builder.append("Content-Type: text/html; charset=utf-8\n");
+          builder.append("\n");
+          builder.append("num1 and num2 are required for multiply\n");
+          builder.append("\nPlease check your " + emptyNum + " parameter and try again");
 		  }
-		  else{
-                          Integer num1 = Integer.parseInt(query_pairs.get("num1"));
+		  else	{
+              Integer num1 = Integer.parseInt(query_pairs.get("num1"));
    			  Integer num2 = Integer.parseInt(query_pairs.get("num2"));
 			  Integer result = num1 * num2;
 
                           // Generate response
-                          builder.append("HTTP/1.1 200 OK\n");
-                          builder.append("Content-Type: text/html; charset=utf-8\n");
-                          builder.append("\n");
-                          builder.append("Result is: " + result);
-                  }
+              builder.append("HTTP/1.1 200 OK\n");
+              builder.append("Content-Type: text/html; charset=utf-8\n");
+              builder.append("\n");
+              builder.append("Result is: " + result);
+               }
 
 	  
 	 	 }
@@ -247,7 +245,10 @@ class WebServer {
           // TODO: Include error handling here with a correct error code and
           // a response that makes sense
 
-        } else if (request.contains("github?")) {
+        } 
+        
+        
+        else if (request.contains("github?")) {
           // pulls the query from the request and runs it with GitHub's REST API
           // check out https://docs.github.com/rest/reference/
           //
@@ -258,17 +259,53 @@ class WebServer {
 
           Map<String, String> query_pairs = new LinkedHashMap<String, String>();
           query_pairs = splitQuery(request.replace("github?", ""));
-          String json = fetchURL("https://api.github.com/" + query_pairs.get("query"));
-          System.out.println(json);
-
-          builder.append("HTTP/1.1 200 OK\n");
-          builder.append("Content-Type: text/html; charset=utf-8\n");
-          builder.append("\n");
-          builder.append("Check the todos mentioned in the Java source file");
+          
+          
+          if(query_pairs.get("query") == null) {
+        	  builder.append("HTTP/1.1 405 No Query String\n");
+              builder.append("Content-Type: text/html; charset=utf-8\n");
+              builder.append("\n");
+              builder.append("please provide a query string");
+          }
+          else{
+	          String json = fetchURL("https://api.github.com/" + query_pairs.get("query"));
+	          System.out.println(json);
+	
+	          builder.append("HTTP/1.1 200 OK\n");
+	          builder.append("Content-Type: text/html; charset=utf-8\n");
+	          builder.append("\n");
+	          builder.append("Check the todos mentioned in the Java source file");
           // TODO: Parse the JSON returned by your fetch and create an appropriate
-          // response based on what the assignment document asks for
+          }// response based on what the assignment document asks for
 
-        } else {
+        } 
+        else if(request.contains("jokes")) {
+        	Map<String, String> query_pairs = splitQuery(request.replace("jokes", "")); 
+  		  
+  		 if (query_pairs.get("multiple") != null) {
+  			
+        	String json = fetchURL("https://official-joke-api.appspot.com/random_ten/");
+  			
+  			builder.append("HTTP/1.1 200 OK\n");
+            builder.append("Content-Type: text/html; charset=utf-8\n");
+            builder.append("\n");
+            builder.append(json);
+        }
+  		 else if (request.contains("jokes?") && query_pairs.get("multiple") == null) {
+  			builder.append("HTTP/1.1 407 Invalid parameters\n");
+            builder.append("Content-Type: text/html; charset=utf-8\n");
+            builder.append("\n");
+            builder.append("Jokes API only allows for multiple as parameter");
+        }
+        else {
+        	String json = fetchURL("https://official-joke-api.appspot.com/random_joke/");
+  			
+  			builder.append("HTTP/1.1 201 Default - Random Joke \n");
+            builder.append("Content-Type: text/html; charset=utf-8\n");
+            builder.append("\n");
+            builder.append(json);
+        }
+  		  
           // if the request is not recognized at all
 
           builder.append("HTTP/1.1 400 Bad Request\n");

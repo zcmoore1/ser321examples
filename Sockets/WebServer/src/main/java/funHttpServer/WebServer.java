@@ -279,10 +279,8 @@ class WebServer {
           }// response based on what the assignment document asks for
 
         } 
-        else if(request.contains("jokes")) {
-        	Map<String, String> query_pairs = splitQuery(request.replace("jokes", "")); 
-  		  
-  		 if (query_pairs.get("multiple") != null) {
+        else if(request.contains("jokes")) { 
+  		 if (request.contains("jokes?multiple=") ) {
   			
         	String json = fetchURL("https://official-joke-api.appspot.com/random_ten/");
   			
@@ -291,8 +289,9 @@ class WebServer {
             builder.append("\n");
             builder.append(json);
         }
-  		 else if (request.contains("jokes?") && query_pairs.get("multiple") == null) {
-  			builder.append("HTTP/1.1 407 Invalid parameters\n");
+
+  		 else if (request.contains("jokes?") && request.contains("jokes?multiple=") == false) {
+  			builder.append("HTTP 1.1 407 Invalid parameters\n");
             builder.append("Content-Type: text/html; charset=utf-8\n");
             builder.append("\n");
             builder.append("Jokes API only allows for multiple as parameter");

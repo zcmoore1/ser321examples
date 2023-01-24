@@ -193,27 +193,57 @@ class WebServer {
             builder.append("\n");
             builder.append("File not found: " + file);
           }
-        } else if (request.contains("multiply?")) {
-          // This multiplies two numbers, there is NO error handling, so when
+        } else if (request.contains("multiply")) {
+          // This multiplies two numbers, thequery_pairs.get("num1")re is NO error handling, so when
           // wrong data is given this just crashes
 
           Map<String, String> query_pairs = new LinkedHashMap<String, String>();
-          // extract path parameters
-          query_pairs = splitQuery(request.replace("multiply?", ""));
+          String emptyNum = "num2";
 
-          // extract required fields from parameters
-          Integer num1 = Integer.parseInt(query_pairs.get("num1"));
-          Integer num2 = Integer.parseInt(query_pairs.get("num2"));
 
-          // do math
-          Integer result = num1 * num2;
+      	  if(request.contains("multiply?") == false){  		  
+		  builder.append("HTTP/1.1 203 No Parameters\n");
+                  builder.append("Content-Type: text/html; charset=utf-8\n");
+                  builder.append("\n");
+		  int result = random.nextInt() * random.nextInt();
+                  builder.append("You did not provide parameters, here is a random multiplication result: " + result);
+		
+	  }
+	  else if(request.contains("multiply?")){
+                  query_pairs = splitQuery(request.replace("multiply?", "")); 
+		  
+		  if (query_pairs.get("num1") == null || query_pairs.get("num2") == null)		 {
+		  
+		  if (query_pairs.get("num1") == null) {
+			  
+			  if (query_pairs.get("num2") == null)
+				  emptyNum = "num1 and num2";
+			  else
+				  emptyNum = "num1";
+		 	 }
+		  builder.append("HTTP/1.1 405 Missing Parameters\n");
+                  builder.append("Content-Type: text/html; charset=utf-8\n");
+                  builder.append("\n");
+                  builder.append("num1 and num2 are required for multiply\n");
+                  builder.append("\nPlease check your " + emptyNum + " parameter and try again");
 
-          // Generate response
-          builder.append("HTTP/1.1 200 OK\n");
-          builder.append("Content-Type: text/html; charset=utf-8\n");
-          builder.append("\n");
-          builder.append("Result is: " + result);
+		  }
+		  else{
+                          Integer num1 = Integer.parseInt(query_pairs.get("num1"));
+   			  Integer num2 = Integer.parseInt(query_pairs.get("num2"));
+			  Integer result = num1 * num2;
 
+                          // Generate response
+                          builder.append("HTTP/1.1 200 OK\n");
+                          builder.append("Content-Type: text/html; charset=utf-8\n");
+                          builder.append("\n");
+                          builder.append("Result is: " + result);
+                  }
+
+	  
+	 	 }
+         	  // do math
+		  
           // TODO: Include error handling here with a correct error code and
           // a response that makes sense
 

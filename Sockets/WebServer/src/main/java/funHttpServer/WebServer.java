@@ -299,19 +299,48 @@ class WebServer {
         else {
         	String json = fetchURL("https://official-joke-api.appspot.com/random_joke/");
   			
-  			builder.append("HTTP/1.1 201 Default - Random Joke \n");
+  			builder.append("HTTP/1.1 200 OK - Random Joke \n");
             builder.append("Content-Type: text/html; charset=utf-8\n");
             builder.append("\n");
             builder.append(json);
         }
-  		  
-          // if the request is not recognized at all
+	}		  
+	
+	else if(request.contains("fib?")){
+		
+		Map<String, String> query_pairs = new LinkedHashMap<String, String>();
+         	query_pairs = splitQuery(request.replace("fib?", ""));
 
-          builder.append("HTTP/1.1 400 Bad Request\n");
-          builder.append("Content-Type: text/html; charset=utf-8\n");
-          builder.append("\n");
-          builder.append("I am not sure what you want me to do...");
-        }
+		if (query_pairs.get("limit") == null){
+			builder.append("HTTP 1.1 407 Invalid parameters\n");
+			builder.append("Content-Type: text/html; charset=utf-8\n");
+              builder.append("\n");
+              builder.append("the limit paramater is required for /fib\n");
+
+		}else if(request.contains("fib?limit=")){
+
+			
+			int limit = (int)Integer.parseInt(query_pairs.get("limit"));
+			int result = fibonacci(limit);
+			builder.append("HTTP 1.1 200 OK \n");	  
+		       	builder.append("Content-Type: text/html; charset=utf-8\n");
+              builder.append("\n");
+              builder.append("Fibonacci of " +limit + "th term is: " + result);
+               
+
+		}
+
+
+	}         
+       
+	// if the request is not recognized at all
+
+	  else{
+		 builder.append("HTTP/1.1 400 Bad Request\n");
+         	 builder.append("Content-Type: text/html; charset=utf-8\n");
+         	 builder.append("\n");
+         	 builder.append("I am not sure what you want me to do...");
+	  }
 
         // Output
         response = builder.toString().getBytes();
@@ -323,7 +352,12 @@ class WebServer {
 
     return response;
   }
-
+ public static int fibonacci(int limit){
+ 	if(limit ==1 || limit == 0){
+		return limit;
+	}
+	return fibonacci(limit-1) + fibonacci(limit-2);
+ }
   /**
    * Method to read in a query and split it up correctly
    * @param query parameters on path

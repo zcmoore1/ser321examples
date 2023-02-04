@@ -18,7 +18,7 @@ import org.json.*;
 
 public class Server {
   /*
-   * request: { "selected": <int: 1=joke, 2=quote, 3=image, 4=random> }
+   * request: { "selected": <int: 1=greeting, 2=quote, 3=image, 4=random> }
    * 
    * response: {"datatype": <int: 1-string, 2-byte array>, "type": <"joke",
    * "quote", "image">, "data": <thing to return> }
@@ -26,17 +26,17 @@ public class Server {
    * error response: {"error": <error string> }
    */
 
-  public static JSONObject joke() {
+  public static JSONObject greeting(String name) {
     JSONObject json = new JSONObject();
     json.put("datatype", 1);
-    json.put("type", "joke");
-    json.put("data", "What does a baby computer call its father? Data.");
+    json.put("type", "greeting");
+    json.put("data", ("Hello " + name + ". Start a game by submitting 1 - See leaderboards by submitting 2" ));
     return json;
   }
 
-  public static JSONObject quote() {
+  public static JSONObject leaderboard() {
     JSONObject json = new JSONObject();
-    json.put("datatype", 1);
+    json.put("datatype", 10);
     json.put("type", "quote");
     json.put("data",
         "A good programmer is someone who always looks both ways before crossing a one-way street. (Doug Linder)");
@@ -74,9 +74,9 @@ public class Server {
     int random = rand.nextInt(3);
     JSONObject json = new JSONObject();
     if (random == 0) {
-      json = joke();
+      json = greeting("n");
     } else if (random == 1) {
-      json = quote();
+      json = leaderboard();
     } else if (random == 2) {
       json = image();
     }
@@ -96,26 +96,38 @@ public class Server {
       // NOTE: SINGLE-THREADED, only one connection at a time
       while (true) {
         Socket sock = null;
+        String name = null;
         try {
           sock = serv.accept(); // blocking wait
+          System.out.println("Connection estabilished");
           OutputStream out = sock.getOutputStream();
           InputStream in = sock.getInputStream();
+          
+          JSONObject test = new JSONObject();
+          test.put("datatype", 1);
+          test.put("type", "reply");
+          test.put("data", "Connected. Please submit your name: ");
+          NetworkUtils.Send(out, JsonUtils.toByteArray(test));
+          
           while (true) {
             byte[] messageBytes = NetworkUtils.Receive(in);
             JSONObject message = JsonUtils.fromByteArray(messageBytes);
             JSONObject returnMessage;
+            
+            
             if (message.has("selected")) {
               if (message.get("selected") instanceof Long || message.get("selected") instanceof Integer) {
                 int choice = message.getInt("selected");
                 switch (choice) {
                 case (1):
-                  returnMessage = joke();
-                  break;
-                case (2):
-                  returnMessage = quote();
+                  String nam = message.getString("name");
+                  returnMessage = greeting(nam);
                   break;
                 case (3):
                   returnMessage = image();
+                  break;
+                case (2):
+                  returnMessage = leaderboard();
                   break;
                 case (4):
                   returnMessage = random();
@@ -125,7 +137,7 @@ public class Server {
                 }
               } else {
                 returnMessage = error("Selection must be an integer");
-              }
+              } 
             } else {
               returnMessage = error("Invalid message received");
             }
